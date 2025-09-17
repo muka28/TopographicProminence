@@ -134,6 +134,6 @@ The main algorithm is in `calculate_prominence_union_find()` - that's where the 
 
 ---
 
-*Built for CSC615 Computational Geometry at [Quinnipiac University]*
+*Built for CSC615 Computational Geometry at Quinnipiac University*
 
-**Team Members**: [Tavonga Dutuma and Innocent Chasekwa]
+**Team Members**: Tamuka Manjemu, Tavonga Dutuma and Innocent Chasekwa
