@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "TopographicProminence"
+name = "topographic_prominence"
 version = "0.1.0"
