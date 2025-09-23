@@ -202,56 +202,69 @@ fn read_csv_grid(filename: &str) -> io::Result<(usize, usize, Vec<i32>)> {
 
 // Read binary grid into flat 1D grid
 fn read_bin_grid(filename: &str) -> io::Result<(usize, usize, Vec<i32>)> {
-    let file = File::open(filename)?;
-    let mut reader = BufReader::new(file);
-    let mut buffer = [0u8; 4];
+    let rows: usize = 6000;
+    let cols: usize = 4800;
 
-    // Read rows
-    reader.read_exact(&mut buffer)?;
-    let rows = u32::from_be_bytes(buffer) as usize; // <-- use BE
-    // Read cols
-    reader.read_exact(&mut buffer)?;
-    let cols = u32::from_be_bytes(buffer) as usize; // <-- use BE
-
-    eprintln!("Header says: rows = {}, cols = {}", rows, cols);
-
-    if rows == 0 || cols == 0 || rows > 100_000 || cols > 100_000 {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!("Unrealistic grid dimensions: rows={}, cols={}", rows, cols),
-        ));
-    }
-
+    // Calculate total elements and check for overflow
     let total = rows
         .checked_mul(cols)
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "Grid size too large"))?;
 
-    let mut grid = Vec::with_capacity(total);
+    // Open the file and get its size
+    let file = File::open(filename)?;
+    let file_size = file.metadata()?.len();
+    let expected_size = total as u64 * 2; // Each i16 is 2 bytes
 
-    for _ in 0..total {
-        reader.read_exact(&mut buffer)?;
-        let val = i32::from_be_bytes(buffer);
-        if val < 0 {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "Negative elevation in binary file",
-            ));
-        }
-        grid.push(val);
-    }
+    // Log file size information
+    eprintln!(
+        "File '{}': size = {} bytes, expected size = {} bytes (for {}x{} i16 grid)",
+        filename, file_size, expected_size, rows, cols
+    );
 
-    if grid.len() != total {
+    // Validate file size
+    if file_size != expected_size {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            "Binary grid size mismatch",
+            format!(
+                "File '{}' size mismatch: expected {} bytes (for {}x{} i16 grid), found {} bytes",
+                filename, expected_size, rows, cols, file_size
+            ),
         ));
     }
 
-    eprintln!("Read BIN grid: rows={}, cols={}, total={}", rows, cols, total);
-    Ok((rows, cols, grid))
-}
+    // Log grid dimensions
+    eprintln!("Reading BIN grid: rows={}, cols={}, total={}", rows, cols, total);
 
-// Compute prominence using Union-Find with flat grid
+    let mut reader = BufReader::new(file);
+    let mut grid = Vec::with_capacity(total);
+    let mut buffer_16 = [0u8; 2];
+
+    // Read elevation values
+    for i in 0..total {
+        reader.read_exact(&mut buffer_16)?;
+        let val = i16::from_le_bytes(buffer_16) as i32; // Little-endian, i16 to i32
+        
+        // Clamp negative values to 0 (sea level) as per assignment requirements
+        let elevation = if val < 0 { 0 } else { val };
+        
+        if i < 5 {
+            eprintln!("Elevation[{}] = {} (original: {})", i, elevation, val);
+        }
+        
+        grid.push(elevation);
+    }
+
+    // Verify grid size
+    if grid.len() != total {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("Binary grid size mismatch in file '{}': expected {} elements, read {}", filename, total, grid.len()),
+        ));
+    }
+
+    eprintln!("Successfully read BIN grid: rows={}, cols={}, total={}", rows, cols, total);
+    Ok((rows, cols, grid))
+}// Compute prominence using Union-Find with flat grid
 fn compute_prominence(rows: usize, cols: usize, grid: &[i32]) -> Vec<Peak> {
     let total_points = rows
         .checked_mul(cols)
