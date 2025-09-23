@@ -3,7 +3,6 @@ CSC615: Computational Geometry Project
 
 Project Overview
 Objective: Compute the topographic prominence of peaks in a Digital Elevation Model (DEM) and identify the 100 most prominent peaks along with their corresponding cols (saddle points).
-Team Members: [Your Team Names Here]
 Programming Language: Rust 🦀
 
 What is Topographic Prominence?
@@ -52,20 +51,20 @@ struct UnionFind {
 }
 
 Algorithm Workflow
-Step 1: Peak Identification 🔍
+Step 1: Peak Identification 
 * Scan entire grid (O(n) where n = total points)
 * For each point, check all 8 neighbors
 * Mark as peak if higher than ALL neighbors
 * Uses 8-connectivity for thorough analysis
-Step 2: Point Sorting 📊
+Step 2: Point Sorting 
 * Sort ALL points by elevation (descending order)
 * Custom Ord implementation for efficient sorting
 * Time Complexity: O(n log n)
-Step 3: Union-Find Initialization 🌐
+Step 3: Union-Find Initialization 
 * Create disjoint set for each grid point
 * Initialize with path compression and union-by-rank
 * Track highest point in each connected component
-Step 4: Sweep Algorithm 🧹
+Step 4: Sweep Algorithm 
 FOR each point p (highest to lowest):
     1. Activate point p
     2. Check all 8 neighbors of p
@@ -73,7 +72,7 @@ FOR each point p (highest to lowest):
         - Union p with neighbor
         - Calculate prominence if conditions met
         - Store result in max-heap
-Step 5: Result Generation 📋
+Step 5: Result Generation 
 * Extract top 100 peaks from max-heap
 * Sort by prominence (descending)
 * Format output with peak and col information
@@ -121,13 +120,13 @@ For a 6000×4800 DEM (28.8M points):
 * Scalability: Handles continent-sized datasets
 
 File Format Support
-CSV Format 📄
+CSV Format 
 fn read_csv_grid(filename: &str) -> io::Result<(usize, usize, Vec<i32>)>
 * Comma-separated elevation values
 * Dynamic size detection
 * Input validation and error handling
 * Perfect for small test datasets
-Binary Format 📦
+Binary Format 
 fn read_bin_grid(filename: &str) -> io::Result<(usize, usize, Vec<i32>)>
 * Fixed 6000×4800 grid (standard DEM format)
 * Little-endian i16 values
