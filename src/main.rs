@@ -264,7 +264,8 @@ fn read_bin_grid(filename: &str) -> io::Result<(usize, usize, Vec<i32>)> {
 
     eprintln!("Successfully read BIN grid: rows={}, cols={}, total={}", rows, cols, total);
     Ok((rows, cols, grid))
-}// Compute prominence using Union-Find with flat grid
+}
+// Compute prominence using Union-Find with flat grid
 fn compute_prominence(rows: usize, cols: usize, grid: &[i32]) -> Vec<Peak> {
     let total_points = rows
         .checked_mul(cols)
